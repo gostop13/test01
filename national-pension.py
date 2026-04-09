@@ -10,17 +10,25 @@ import streamlit as st
 # 한글 폰트 설정
 # plt.rcParams['font.family'] = "AppleGothic"
 # Windows, 리눅스 사용자
-plt.rcParams['font.family'] = "NanumGothic"
+plt.rcParams['font.family'] = "Malgun Gothic"
 plt.rcParams['axes.unicode_minus'] = False
 
 class PensionData():
-    def __init__(self, df):  # 파일 경로가 아닌 데이터프레임을 직접 받음
-        self.df = df       
+    # 수정 전
+    # def __init__(self, filepath):
+    #     self.df = pd.read_csv(os.path.join(filepath), encoding='cp949')
+    #     self.pattern1 = '(\([^)]+\))'
+    #     self.pattern2 = '(\[[^)]+\])'
+    #     self.pattern3 = '[^A-Za-z0-9가-힣]'
+    #     self.preprocess()
+    # 수정 후
+    def __init__(self, uploaded_file):  # ← filepath → uploaded_file
+        self.df = pd.read_csv(uploaded_file, encoding='cp949')  # ← os.path.join 제거
         self.pattern1 = '(\([^)]+\))'
         self.pattern2 = '(\[[^)]+\])'
         self.pattern3 = '[^A-Za-z0-9가-힣]'
         self.preprocess()
-          
+
     def preprocess(self):
         self.df.columns = [
             '자료생성년월', '사업장명', '사업자등록번호', '가입상태', '우편번호',
@@ -71,30 +79,18 @@ class PensionData():
     def get_data(self):
         return self.df
 
-file_id = '1c1odH65M5JEDwQdGtfCRzMdLLIGeBL_m'
+# 수정 전
+# @ st.cache_data
+# def read_pensiondata():
+#     data = PensionData('./data/national-pension.csv')
+#     return data
+# data = read_pensiondata()
+# 수정 후
+uploaded_file = st.file_uploader('CSV 파일을 업로드해 주세요', type='csv')
+data = None
+if uploaded_file is not None:
+    data = PensionData(uploaded_file)
 
-# 2. 대용량 파일용 보안 확인 건너뛰기 주소 (confirm=t 추가)
-url = f'https://drive.google.com/uc?export=download&confirm=t&id={file_id}'
-
-@st.cache_data
-def get_pension_instance():
-    try:
-        # 데이터 읽기
-        raw_df = pd.read_csv(url, encoding='cp949')
-        
-        # 만약 여기서도 열 개수 에러가 난다면, 
-        # 구글이 일시적으로 차단한 것이므로 컬럼 확인 로직을 넣습니다.
-        if len(raw_df.columns) < 22:
-            st.error("구글 드라이브에서 데이터를 정상적으로 가져오지 못했습니다. 잠시 후 다시 시도하거나 파일을 드롭박스 등 다른 곳에 올려주세요.")
-            st.stop()
-            
-        return PensionData(raw_df)
-    except Exception as e:
-        st.error(f"데이터 로드 중 오류 발생: {e}")
-        st.stop()
-
-# 데이터 객체 생성
-data = get_pension_instance()
 company_name = st.text_input('회사명을 입력해 주세요', placeholder='검색할 회사명 입력')
 
 if data and company_name:
