@@ -14,8 +14,8 @@ plt.rcParams['font.family'] = "NanumGothic"
 plt.rcParams['axes.unicode_minus'] = False
 
 class PensionData():
-    def __init__(self, df):  # filepath 대신 df(데이터프레임)를 직접 받습니다.
-        self.df = df         # os.path.join(filepath)을 삭제하세요.
+    def __init__(self, df):  # 파일 경로가 아닌 데이터프레임을 직접 받음
+        self.df = df       
         self.pattern1 = '(\([^)]+\))'
         self.pattern2 = '(\[[^)]+\])'
         self.pattern3 = '[^A-Za-z0-9가-힣]'
@@ -71,23 +71,29 @@ class PensionData():
     def get_data(self):
         return self.df
 
-file_id = '1c1odH65M5JEDwQdGtfCRzMdLLIGeBL_m' # 앞에 붙은 h는 제외하고 정확한 ID만 입력
-url = f'https://drive.google.com/uc?export=download&id={file_id}'
+file_id = '1c1odH65M5JEDwQdGtfCRzMdLLIGeBL_m'
+
+# 2. 대용량 파일용 보안 확인 건너뛰기 주소 (confirm=t 추가)
+url = f'https://drive.google.com/uc?export=download&confirm=t&id={file_id}'
 
 @st.cache_data
 def get_pension_instance():
-    # 1. URL에서 데이터를 읽어옴 (이때 404가 나면 파일 ID나 공유 설정 문제)
-    raw_df = pd.read_csv(url, encoding='cp949')
-    # 2. 클래스에 데이터프레임을 직접 전달
-    return PensionData(raw_df)
+    try:
+        # 데이터 읽기
+        raw_df = pd.read_csv(url, encoding='cp949')
+        
+        # 만약 여기서도 열 개수 에러가 난다면, 
+        # 구글이 일시적으로 차단한 것이므로 컬럼 확인 로직을 넣습니다.
+        if len(raw_df.columns) < 22:
+            st.error("구글 드라이브에서 데이터를 정상적으로 가져오지 못했습니다. 잠시 후 다시 시도하거나 파일을 드롭박스 등 다른 곳에 올려주세요.")
+            st.stop()
+            
+        return PensionData(raw_df)
+    except Exception as e:
+        st.error(f"데이터 로드 중 오류 발생: {e}")
+        st.stop()
 
-# 데이터 인스턴스 생성
-try:
-    data = get_pension_instance() # 여기서 반환된 것이 전처리가 끝난 클래스 인스턴스입니다.
-except Exception as e:
-    st.error(f"데이터 로드 중 오류 발생: {e}")
-    st.stop()
-
+# 데이터 객체 생성
 data = get_pension_instance()
 company_name = st.text_input('회사명을 입력해 주세요', placeholder='검색할 회사명 입력')
 
