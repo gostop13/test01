@@ -71,7 +71,7 @@ class PensionData():
     def get_data(self):
         return self.df
 
-file_id = 'https://drive.google.com/file/d/1c1odH65M5JEDwQdGtfCRzMdLLIGeBL_m/view?usp=sharing'
+file_id = 'h1c1odH65M5JEDwQdGtfCRzMdLLIGeBL_m'
 url = f'https://drive.google.com/uc?id={file_id}'
 @ st.cache_data #전처리를 다시 하지 않고 메모리에 데이터를 갔다놨다가 가지고 옴
 
