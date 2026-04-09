@@ -71,12 +71,25 @@ class PensionData():
     def get_data(self):
         return self.df
 
-@ st.cache_data
-def read_pensiondata():
-    data = PensionData('./data/national-pension.csv')
-    return data
+file_id = 'https://drive.google.com/file/d/1c1odH65M5JEDwQdGtfCRzMdLLIGeBL_m/view?usp=sharing'
+url = f'https://drive.google.com/uc?id={file_id}'
+@ st.cache_data #전처리를 다시 하지 않고 메모리에 데이터를 갔다놨다가 가지고 옴
 
-data = read_pensiondata()
+def get_pension_instance():
+    # 1. URL에서 원본 데이터를 읽어옴
+    raw_df = pd.read_csv(url, encoding='cp949')
+    # 2. 클래스에 넣어서 전처리가 완료된 인스턴스를 반환
+    return PensionData(raw_df)
+
+# 데이터 인스턴스 생성
+try:
+    data_inst = get_pension_instance()
+    # st.success("데이터 연결 완료!") # 확인용 (불필요시 주석처리)
+except Exception as e:
+    st.error(f"데이터 로드 중 오류 발생: {e}")
+    st.stop()
+
+data = get_pension_instance()
 company_name = st.text_input('회사명을 입력해 주세요', placeholder='검색할 회사명 입력')
 
 if data and company_name:
