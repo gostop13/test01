@@ -72,7 +72,7 @@ class PensionData():
         return self.df
 
 file_id = 'h1c1odH65M5JEDwQdGtfCRzMdLLIGeBL_m'
-url = f'https://drive.google.com/uc?id={file_id}'
+url = f'https://drive.google.com/uc?export=download&id={file_id}'
 @ st.cache_data #전처리를 다시 하지 않고 메모리에 데이터를 갔다놨다가 가지고 옴
 
 def get_pension_instance():
